@@ -35,20 +35,30 @@ public class Main {
                         selectPackage("edu.ucsb.pconrad.jgrade5.example")
                 )
                 .filters(
-                        includeClassNamePatterns(".*Tests"))
+                        includeClassNamePatterns(".*Test"))
                 .build();
 
         System.out.println("Launcher Discovery Request done...");
  
+
+        SummaryGeneratingListener listener = new SummaryGeneratingListener();
+
         try (LauncherSession session = LauncherFactory.openSession()) {
-            TestPlan testPlan = session.getLauncher().discover(request);
+            Launcher launcher = session.getLauncher();
+            // Register a listener of your choice
+            launcher.registerTestExecutionListeners(listener);
+            // Discover tests and build a test plan
+            TestPlan testPlan = launcher.discover(request);
+            // Execute test plan
+            launcher.execute(testPlan);
+            // Alternatively, execute the request directly
+            launcher.execute(request);
+        }
+        
+        TestExecutionSummary summary = listener.getSummary();
+        PrintWriter writer = new PrintWriter(System.out);
 
-            System.out.println("Execute tests here...");
-
-            // ... discover additional test plans or execute tests
-        } 
-
-        System.out.println("Launcher Discovery Request done...");
+        summary.printTo(writer);
 
     }
 }
